@@ -1,0 +1,21 @@
+registers:
+    8   AL/AH, CL/CH, DL/DH, BL/BH, SPL, BPL, SIL, DIL, R8B-R15B 
+    16  AX,    CX,    DX,    BX,    SP,  BP,  SI,  DI,  R8W-R15W 
+    32  EAX,   ECX,   EDX,   EBX,   ESP, EBP, ESI, EDI, R8D-R15D 
+    64  RAX,   RCX,   RDX,   RBX,   RSP, RBP, RSI, RDI, R8-R15
+    intel uses R8L-R15L for something-something 8 bit, include standart macro package `altreg`, 
+    see nasm docs section 6.1
+calling convention:
+    pointer args passed in stack
+    first 6 ints in registers like syscalls, later in stack
+    Intel AVX registers and other stuff are out of scope, because i do not understand any of it    
+syscalls: 
+    num arg1 arg2 arg3 arg4 arg5 arg6 | ret1 ret2
+    rax rdi  rsi  rdx  r10  r8   r9   | rax  rdx
+
+    clobbers rcx and r11
+sizes:
+    bytes: 1    2    4     8     10    16           32    64
+directive: byte word dword qword tword oword        yword zword 
+  declare: db   dw   dd    dq    dt    do (ddq)     dy    dz
+  reserve: resb resw resd  resq  rest  reso (resdq) resy  resz
