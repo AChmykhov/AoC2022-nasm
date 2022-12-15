@@ -13,22 +13,23 @@ section .data
                                     ; not equ BECAUSE MUL DOUES NOT TAKE imm64
 
 section .bss
-    number: resd 1      ; currently readed number
-
+    number: resd 1  ; currently readed number
+;    output: resq 1  ; currently printed out number. tword becau
 section .text
 global _start
 
 _start:
-    mov dword [maximum], 3 ; proof of concept
+    mov dword [maximum], 1200    ; proof of concept
     mov dword eax, [maximum]  ; put printing buffer in rax
-    call _printINT      ; print result on user screen
+    call _printINT  ; print result on user screen
     jmp _exit
 
 
-_printINT:          ; print integer subroutine. prints number from rax, assuming it is not zero (TODO)
-    xor rdi, rdi    ; zero out result register
-    xor rbx, rbx    ; zero out count how many characters was processed
-.loop:
+_printINT:          ; print integer subroutine. prints number from rax, assuming it is not zero (TODO ?)
+                    ; printing 8 least significant digits, suited for printing dword (TODO: make it print QWORD)
+                    ; If number is less then 8 digits, rest will be filled with NUL (\0) FROM THE RIGHT. IDK why
+    xor rdi, rdi    ; clear output register
+.loop:              ; do{
     mov rcx, rax    ; save original number
     mul qword [TENTH]   ; divide by 10 using magic number
     shr rdx, 3      ; get int part of result in rdx, shift 3 cause magic number used 67
@@ -37,38 +38,30 @@ _printINT:          ; print integer subroutine. prints number from rax, assuming
     shl rdi, 8      ; make room for byte
     lea rdx, [rdx*2 - '0']  ; make it mul by 10, and conver to ascii
     sub rcx, rdx    ; get remainder and it is already ascii (magic)
-    lea rdi, [rdi+rcx]  ; store this byte
-;    inc rbx         ; increment numbers count
-;    cmp rbx, 8 ; test if result string at max capacity
-;    jz .print8
-    push rax
-    call _printRDI
-    pop rax
-;.ending:
-    test rax, rax   ; test if original number is reduced to 0
+    add rdi, rcx  ; store this byte
+    test rax, rax   ; } while(rax) ; test if original number is reduced to 0
     jnz .loop
-    ;call _printRDI  ; call print if we are done
+    push rdi
+    mov rax, rsp ; pointer to the buffer in RAX
+    mov rdi, 8     ; number of bytes to print in buffer: 8
+    call _printRAX  ; print buffer
+    pop rdi
+    push 0x0A       ; setup buffer for printing '\n'
+    mov rax, rsp    ; put pointer
+    mov rdi, 1      ; printing 1 byte
+    call _printRAX  ; print '\n'
+    pop rax         ; clear stack (or we will get seg fault
     ret
 
-;.print8:
-;    test rax, rax
-;    jz .ending  ;prevent double printing if this was called on last iteration
-;
-;    push rax    ; save original number
-;    call _printRDI
-;    pop rax     ; restore original number
-;    jmp .ending ; return to main loop
 
-
-_printRDI:              ; subroutine to print string in rdi, number of bytes is in rbx, this is done for speed
-    push rcx            ; expecting to get buffer in rax, moving it in right place for syscall
-;    mov rdx, rbx        ; move number of bytes from rbx
-    mov rax, 1          ; syscall write is 1
-    mov rdi, 1          ; writing to STDOUT
-    mov rsi, rsp        ; put pointer to to-print buffer in rsi
-    mov rdx, 1          ; printing one byte
+_printRAX:          ; subroutine to print string with pointer in rax,
+                    ; number of bytes in rdi
+; syscall write remainder: #=1 in RAX, fd (=1 for STDOUT) in RDI, *buff in RSI, bytes count in RDX;
+    mov rsi, rax    ; mapping args: buffer pointer in rsi for syscall
+    mov rdx, rdi    ; mapping args: bytes count in rdx for syscall
+    mov rax, 1      ; syscall write is 1
+    mov rdi, 1      ; writing to STDOUT
     syscall
-    pop rcx
     ret
 
 
