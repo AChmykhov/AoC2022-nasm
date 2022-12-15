@@ -6,8 +6,8 @@ registers:
     intel uses R8L-R15L for something-something 8 bit, include standart macro package `altreg`, 
     see nasm docs section 6.1
 calling convention:
-    pointer args passed in stack
-    first 6 ints in registers like syscalls, later in stack
+    pointer args passed in stack, will be ignored in local functions. IF I CAN PASS THEM IN REGS, I WILL.
+    first 6 ints in registers like syscalls, later in stack. arg0 will be passed in rax in local funcs
     Intel AVX registers and other stuff are out of scope, because i do not understand any of it    
 syscalls: 
     num arg1 arg2 arg3 arg4 arg5 arg6 | ret1 ret2
